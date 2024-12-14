@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="200" height="200" viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
+  <!-- Background Circle -->
+  <circle cx="100" cy="100" r="95" fill="#1B4332" stroke="#DAA520" stroke-width="2"/>
+  
+  <!-- Decorative Islamic Pattern -->
+  <path d="M100 20
+           A80 80 0 0 1 180 100
+           A80 80 0 0 1 100 180
+           A80 80 0 0 1 20 100
+           A80 80 0 0 1 100 20
+           Z" 
+        fill="none" 
+        stroke="#DAA520" 
+        stroke-width="2"/>
+  
+  <!-- Open Book Shape -->
+  <path d="M60 80
+           Q100 70 140 80
+           L140 130
+           Q100 120 60 130
+           Z" 
+        fill="#DAA520" 
+        opacity="0.9"/>
+  
+  <!-- Arabic Text-like Decorative Lines -->
+  <path d="M70 95 H130 M70 105 H120 M70 115 H125" 
+        stroke="#1B4332" 
+        stroke-width="3" 
+        stroke-linecap="round"/>
+  
+  <!-- Decorative Dots -->
+  <circle cx="85" cy="65" r="3" fill="#DAA520"/>
+  <circle cx="115" cy="65" r="3" fill="#DAA520"/>
+  
+  <!-- BMM Letters -->
+  <text x="100" y="160" 
+        font-family="Arial" 
+        font-size="24" 
+        fill="#DAA520" 
+        text-anchor="middle" 
+        font-weight="bold">BMM</text>
+</svg>
