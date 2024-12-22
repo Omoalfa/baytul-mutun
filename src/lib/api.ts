@@ -1,74 +1,283 @@
-import { Course, Instructor, DonationOption, AboutContent, ApiResponse, PaginatedResponse } from '@/types';
+import { CourseFilters } from '@/hooks/useApi';
+import { Course, ApiResponse, PaginatedResponse, User, EnrolledCourse, UserCourseModule, CourseModule, QuizQuestion } from '@/types';
+import { CreateCourseDto, CreateCourseModuleDto, CreateQuizQuestionDto } from '@/types/course';
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api';
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
+
+export interface LoginData {
+  email: string;
+  password: string;
+}
+
+export interface RegisterData {
+  email: string;
+  password: string;
+  firstName: string;
+  lastName: string;
+}
+
+export interface AuthResponse {
+  user: any;
+  token: string;
+}
 
 class ApiError extends Error {
   constructor(public status: number, message: string) {
     super(message);
-    this.name = 'ApiError';
   }
 }
 
+const getToken = () => {
+  if (typeof window === 'undefined') {
+    // Server-side
+    return null;
+  }
+  // Client-side
+  return localStorage.getItem("token");
+};
+
 async function fetchApi<T>(
   endpoint: string,
-  options: RequestInit = {}
-): Promise<T> {
+  options: RequestInit = {},
+  method: 'POST' | 'PATCH' | 'DELETE' | 'GET' | 'PUT' = 'GET'
+): Promise<ApiResponse<T>> {
   const url = `${API_BASE_URL}${endpoint}`;
+  const token = getToken();
+  
+  const isFormData = options.body instanceof FormData;
+  
   const response = await fetch(url, {
     ...options,
+    method,
     headers: {
-      'Content-Type': 'application/json',
+      ...(!isFormData ? { 'Content-Type': 'application/json' } : {}),
+      ...(token ? { 'Authorization': `Bearer ${token}` } : {}),
       ...options.headers,
     },
   });
 
-  const data = await response.json();
-
-  if (!response.ok) {
-    throw new ApiError(response.status, data.error || 'Something went wrong');
+  const contentType = response.headers.get('content-type');
+  let responseData;
+  
+  if (contentType && contentType.includes('application/json')) {
+    responseData = await response.json();
+  } else {
+    responseData = await response.text();
   }
 
+  if (!response.ok) {
+    throw new ApiError(response.status, responseData.message || responseData || 'Something went wrong');
+  }
+
+  // Wrap the response data in the ApiResponse format
+  return {
+    data: responseData
+  };
+}
+
+async function fetchPaginatedApi<T>(
+  endpoint: string,
+  page: number = 1,
+  limit: number = 10,
+  queryParams: Record<string, string | number | boolean> = {}
+): Promise<PaginatedResponse<T>> {
+  const queryString = new URLSearchParams({
+    page: page.toString(),
+    limit: limit.toString(),
+    ...Object.fromEntries(
+      Object.entries(queryParams)
+        .filter(([_, value]) => value !== undefined && value !== null)
+        .map(([key, value]) => [key, value.toString()])
+    )
+  }).toString();
+
+  const url = `${API_BASE_URL}${endpoint}${endpoint.includes('?') ? '&' : '?'}${queryString}`;
+  const token = getToken();
+
+  const response = await fetch(url, {
+    method: 'GET',
+    headers: {
+      'Content-Type': 'application/json',
+      ...(token ? { 'Authorization': `Bearer ${token}` } : {})
+    }
+  });
+
+  if (!response.ok) {
+    const responseData = await response.json();
+    throw new ApiError(response.status, responseData.message || 'Something went wrong');
+  }
+
+  const data = await response.json();
   return data;
 }
 
 export const api = {
+  // Auth
+  async login(data: LoginData) {
+    return await fetchApi<{ user: any; token: string }>('/auth/login', {
+      body: JSON.stringify(data),
+    }, 'POST');
+  },
+
+  async register(data: RegisterData) {
+    return await fetchApi<{ user: any; token: string }>('/auth/register', {
+      body: JSON.stringify(data),
+    }, 'POST');
+  },
+
+  async getProfile() {
+    return await fetchApi<any>('/users/profile');
+  },
+
+  async verifyEmail(token: string) {
+    return await fetchApi<{ message: string }>('/auth/verify-email?token=' + token, {
+      body: JSON.stringify({ token }),
+    }, 'POST');
+  },
+
+  async resendVerification(email: string) {
+    return await fetchApi<{ message: string }>('/auth/resend-verification', {
+      body: JSON.stringify({ email }),
+    }, 'POST');
+  },
+
+  async forgotPassword(email: string) {
+    return await fetchApi<{ message: string }>('/auth/forgot-password', {
+      body: JSON.stringify({ email }),
+    }, 'POST');
+  },
+
+  async facebookLogin(accessToken: string) {
+    return await fetchApi<{ token: string }>('/auth/facebook', {
+      body: JSON.stringify({ accessToken }),
+    }, 'POST');
+  },
+
+  async googleLogin(accessToken: string) {
+    return await fetchApi<{ token: string }>('/auth/google', {
+      body: JSON.stringify({ accessToken }),
+    }, 'POST');
+  },
+
+  logout() {
+    localStorage.removeItem('token');
+  },
+
   // Courses
   async getCourses(page = 1, limit = 10, filters?: { level?: string; search?: string }) {
-    const url = new URL(`${API_BASE_URL}/courses`);
-    url.searchParams.set('page', page.toString());
-    url.searchParams.set('limit', limit.toString());
-    
-    if (filters?.level && filters.level !== 'All Levels') {
-      url.searchParams.set('level', filters.level);
-    }
-    if (filters?.search) {
-      url.searchParams.set('search', filters.search);
-    }
-
-    const response = await fetch(url.toString());
-    if (!response.ok) {
-      throw new Error('Failed to fetch courses');
-    }
-    return response.json();
+    return await fetchPaginatedApi<Course>('/courses', page, limit, {
+      level: filters?.level,
+      search: filters?.search
+    });
   },
-  
-  getCourse: (id: string) =>
-    fetchApi<ApiResponse<Course>>(`/courses/${id}`),
+
+  async getCourse(id: number) {
+    return await fetchApi<Course>(`/courses/${id}`);
+  },
+
+  async fetchCourseModules(courseId: number) {
+    return await fetchApi<CourseModule[]>(`/courses/${courseId}/modules`);
+  },
+
+  // For Instructors
+  // *********************************************
+  // Create Course
+  async createCourse(data: CreateCourseDto & { avatar?: File }) {
+    const formData = new FormData();
+    
+    // Append course data
+    Object.entries(data).forEach(([key, value]) => {
+      if (key === 'avatar' && value instanceof File) {
+        formData.append(key, value);
+      } else if (Array.isArray(value)) {
+        value.forEach((item) => formData.append(key + '[]', item));
+      } else if (value !== undefined) {
+        formData.append(key, value.toString());
+      }
+    });
+    
+    return await fetchApi<Course>('/courses', {
+      method: 'POST',
+      body: formData,
+    }, 'POST');
+  },
+
+  // Course Modules
+  async addModuleToCourse(courseId: number, data: CreateCourseModuleDto, video?: File, audio?: File) {
+    const formData = new FormData();
+    formData.append('data', JSON.stringify(data));
+    if (video) formData.append('video', video);
+    if (audio) formData.append('audio', audio);
+
+    return await fetchApi<CourseModule>(`/courses/${courseId}/module`, {
+      method: 'POST',
+      body: formData,
+    });
+  },
+
+  async addQuizToModule(courseId: number, moduleId: number, data: CreateQuizQuestionDto) {
+    return await fetchApi<QuizQuestion>(`/courses/${courseId}/module/${moduleId}/quiz`, {
+      method: 'POST',
+      body: JSON.stringify(data),
+    }, 'POST');
+  },
+
+  async addBulkQuizToModule(courseId: number, moduleId: number, data: CreateQuizQuestionDto[]) {
+    return await fetchApi<QuizQuestion[]>(`/courses/${courseId}/module/${moduleId}/quiz/bulk`, {
+      method: 'POST',
+      body: JSON.stringify(data),
+    }, 'POST');
+  },
+  // **********************************************************************
+
+  // For Students
+  // *******************************************************************************************************
+  // Course enrollment
+  async enrollInCourse(courseId: number) {
+    return await fetchApi<{ message: string }>(`/courses/${courseId}/enroll`, {}, 'POST');
+  },
+
+  // Enrolled Courses
+  async getEnrolledCourses(page = 1, limit = 10) {
+    return await fetchPaginatedApi<EnrolledCourse>('/courses/my', page, limit);
+  },
+
+  // Get My Enrolled Course Details
+  async getEnrolledCourseDetails(courseId: string) {
+    return await fetchApi<EnrolledCourse>(`/courses/my/${courseId}`);
+  },
+
+  // My Module Details
+  async getModuleDetails(moduleId: number, courseId: number) {
+    return await fetchApi<UserCourseModule>(`/courses/my/${courseId}/modules/${moduleId}`);
+  },
+
+  async getModuleQuestions(moduleId: number, courseId: number) {
+    return await fetchApi<QuizQuestion[]>(`/courses/${courseId}/modules/${moduleId}/quiz`);
+  },
+
+  async submitQuiz(moduleId: number, courseId: number, answers: { questionId: number; answers: string[] }[]) {
+    return await fetchApi<{ grade: number }>(`/courses/${courseId}/modules/${moduleId}/quiz`, {
+      body: JSON.stringify({
+        data: answers,
+      }),
+    }, 'POST');
+  },
+  /// *******************************************************************************************************
 
   // Instructors
-  getInstructors: () =>
-    fetchApi<ApiResponse<Instructor[]>>('/instructors'),
+  getInstructors: async () => await fetchApi<ApiResponse<User[]>>('/instructors'),
   
-  getInstructor: (id: string) =>
-    fetchApi<ApiResponse<Instructor>>(`/instructors/${id}`),
+  getInstructor: async (id: string) =>
+    await fetchApi<ApiResponse<User>>(`/instructors/${id}`),
 
-  // Donations
-  getDonationOptions: () =>
-    fetchApi<ApiResponse<DonationOption[]>>('/donations/options'),
+  getInstructorCourses: async (page: number, limit: number, filters?: CourseFilters) =>
+    await fetchPaginatedApi<Course>('/instructors/courses', page, limit, {
+      search: filters?.search
+    }),
 
-  // About
-  getAboutContent: () =>
-    fetchApi<ApiResponse<AboutContent>>('/about'),
+  getInstructorCourseDetails: async (id: string) =>
+    await fetchApi<ApiResponse<Course>>(`/instructors/courses/${id}`),
 };
 
 // Placeholder data for development

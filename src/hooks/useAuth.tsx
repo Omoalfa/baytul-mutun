@@ -1,7 +1,8 @@
 'use client'
 
 import React, { createContext, useContext, useState, useEffect } from 'react';
-import authService, { LoginData, RegisterData } from '@/lib/auth';
+import { api, LoginData, RegisterData } from '@/lib/api';
+import { useRouter } from 'next/navigation';
 
 interface User {
   id: string;
@@ -9,7 +10,7 @@ interface User {
   firstName: string;
   lastName: string;
   isVerified: boolean;
-  role: string;
+  roles: string[];
   avatar: string;
 }
 
@@ -23,7 +24,7 @@ interface AuthContextType {
   verifyEmail: (token: string) => Promise<void>;
   resendVerification: (email: string) => Promise<void>;
   forgotPassword: (email: string) => Promise<void>;
-  resetPassword: (token: string, newPassword: string) => Promise<void>;
+  // resetPassword: (token: string, newPassword: string) => Promise<void>;
   loginWithGoogle: () => Promise<void>;
   loginWithFacebook: () => Promise<void>;
 }
@@ -34,26 +35,52 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const router = useRouter();
 
-  useEffect(() => {
-    // Check if user is already logged in
-    const token = authService.getToken();
-    if (token) {
-      // TODO: Implement get user profile endpoint and fetch user data
-      setLoading(false);
-    } else {
+  // Function to fetch user profile
+  const fetchUserProfile = async () => {
+    try {
+      setLoading(true);
+      const { data } = await api.getProfile();
+      console.log(data, "FETCHING USER");
+      setUser(data);
+    } catch (err) {
+      console.error('Error fetching user profile:', err);
+      api.logout(); // Clear invalid token
+      setUser(null);
+      router.push('/login');
+    } finally {
       setLoading(false);
     }
+  };
+
+  // Initial load
+  useEffect(() => {
+    fetchUserProfile();
   }, []);
 
-  const login = async (data: LoginData) => {
+  // Set up token refresh interval
+  // useEffect(() => {
+  //   if (!initialLoadDone) return;
+
+  //   const interval = setInterval(() => {
+  //     if (authService.getToken()) {
+  //       fetchUserProfile();
+  //     }
+  //   }, 5 * 60 * 1000); // Refresh every 5 minutes
+
+  //   return () => clearInterval(interval);
+  // }, [initialLoadDone]);
+
+  const login = async (loginData: LoginData) => {
     try {
       setError(null);
-      const response = await authService.login(data);
-      console.log(response);
-      setUser(response.user);
+      const { data } = await api.login(loginData);
+      localStorage.setItem("token", data.token);
+      setUser(data.user);
     } catch (err: any) {
-      setError(err.response?.data?.message || 'An error occurred during login');
+      console.error('Login error:', err);
+      setError(err.message || 'An error occurred during login');
       throw err;
     }
   };
@@ -61,7 +88,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const register = async (data: RegisterData) => {
     try {
       setError(null);
-      await authService.register(data);
+      await api.register(data);
     } catch (err: any) {
       setError(err.response?.data?.message || 'An error occurred during registration');
       throw err;
@@ -69,14 +96,16 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   };
 
   const logout = () => {
-    authService.logout();
+    localStorage.removeItem("token");
     setUser(null);
+    router.push('/login');
   };
 
   const verifyEmail = async (token: string) => {
     try {
       setError(null);
-      await authService.verifyEmail(token);
+      console.log(token)
+      await api.verifyEmail(token);
     } catch (err: any) {
       setError(err.response?.data?.message || 'An error occurred during email verification');
       throw err;
@@ -86,7 +115,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const resendVerification = async (email: string) => {
     try {
       setError(null);
-      await authService.resendVerification(email);
+      await api.resendVerification(email);
     } catch (err: any) {
       setError(err.response?.data?.message || 'An error occurred while resending verification');
       throw err;
@@ -96,27 +125,27 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const forgotPassword = async (email: string) => {
     try {
       setError(null);
-      await authService.forgotPassword(email);
+      await api.forgotPassword(email);
     } catch (err: any) {
-      setError(err.response?.data?.message || 'An error occurred while requesting password reset');
+      setError(err.response?.data?.message || 'An error occurred during password reset request');
       throw err;
     }
   };
 
-  const resetPassword = async (token: string, newPassword: string) => {
-    try {
-      setError(null);
-      await authService.resetPassword(token, newPassword);
-    } catch (err: any) {
-      setError(err.response?.data?.message || 'An error occurred while resetting password');
-      throw err;
-    }
-  };
+  // const resetPassword = async (token: string, newPassword: string) => {
+  //   try {
+  //     setError(null);
+  //     await api.resetPassword(token, newPassword);
+  //   } catch (err: any) {
+  //     setError(err.response?.data?.message || 'An error occurred during password reset');
+  //     throw err;
+  //   }
+  // };
 
   const loginWithGoogle = async () => {
     try {
       setError(null);
-      await authService.loginWithGoogle();
+      window.location.href = `${process.env.NEXT_PUBLIC_API_URL}/auth/google`;
     } catch (err: any) {
       setError(err.response?.data?.message || 'An error occurred during Google login');
       throw err;
@@ -126,7 +155,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const loginWithFacebook = async () => {
     try {
       setError(null);
-      await authService.loginWithFacebook();
+      window.location.href = `${process.env.NEXT_PUBLIC_API_URL}/auth/facebook`;
     } catch (err: any) {
       setError(err.response?.data?.message || 'An error occurred during Facebook login');
       throw err;
@@ -143,7 +172,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     verifyEmail,
     resendVerification,
     forgotPassword,
-    resetPassword,
+    // resetPassword,
     loginWithGoogle,
     loginWithFacebook,
   };

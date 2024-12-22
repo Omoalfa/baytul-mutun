@@ -1,26 +1,136 @@
-import { FaGraduationCap, FaBook, FaGlobe, FaChartPie, FaQuestionCircle } from 'react-icons/fa';
-import DonationForm from '@/components/DonationForm';
+'use client'
+
+import { Button } from '@/components/ui/button'
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import { BookOpen, GraduationCap, Globe, PieChart, HeartHandshake, Users, Building2, Wallet, CalendarClock, School, Lightbulb } from 'lucide-react'
+import DonationForm from '@/components/DonationForm'
+import CallToAction from '@/components/CallToAction'
+import Image from 'next/image'
+
+const features = [
+  {
+    icon: GraduationCap,
+    title: 'Empowering Students',
+    description: 'Enable learners from underprivileged backgrounds to access quality Islamic education.',
+  },
+  {
+    icon: BookOpen,
+    title: 'Preserving Heritage',
+    description: 'Assist in digitizing and teaching classical texts (matn) and poetic works (nazm).',
+  },
+  {
+    icon: Globe,
+    title: 'Expanding Our Reach',
+    description: 'Fund technological upgrades and course development to serve more Muslims globally.',
+  },
+]
+
+const donationOptions = [
+  {
+    icon: Wallet,
+    title: 'One-Time Donation',
+    description: 'Make a single contribution to support a specific project or area of need.',
+    buttonText: 'Donate Once',
+    link: '#donate-form'
+  },
+  {
+    icon: CalendarClock,
+    title: 'Monthly Sponsorship',
+    description: 'Become a regular sponsor to ensure continuous impact and progress.',
+    buttonText: 'Start Sponsoring',
+    link: '#sponsorship'
+  },
+  {
+    icon: School,
+    title: 'Scholarship Fund',
+    description: "Sponsor a student's learning journey to help them access courses and resources.",
+    buttonText: 'Sponsor a Student',
+    link: '#sponsorship'
+  },
+  {
+    icon: Lightbulb,
+    title: 'Specific Projects',
+    description: 'Choose to support particular projects like developing new courses, improving technology, or expanding our library.',
+    buttonText: 'View Projects',
+    link: '#projects'
+  }
+]
+
+const sponsorshipLevels = [
+  {
+    amount: 25,
+    description: 'Covers a single course for one student'
+  },
+  {
+    amount: 50,
+    description: 'Funds one month of platform maintenance'
+  },
+  {
+    amount: 100,
+    description: 'Supports digitizing and publishing a new Islamic text'
+  },
+  {
+    amount: 500,
+    description: 'Provides full scholarship to a student for six months'
+  }
+]
+
+const fundAllocation = [
+  {
+    percentage: 50,
+    label: 'Scholarships and student sponsorships'
+  },
+  {
+    percentage: 30,
+    label: 'Course creation and content development'
+  },
+  {
+    percentage: 15,
+    label: 'Platform maintenance and upgrades'
+  },
+  {
+    percentage: 5,
+    label: 'Administrative costs'
+  }
+]
+
+const faqs = [
+  {
+    question: 'Can I donate anonymously?',
+    answer: 'Yes, you can choose to remain anonymous during the donation process.'
+  },
+  {
+    question: 'Will I receive a receipt?',
+    answer: 'Yes, all donors will receive a receipt for their contributions via email.'
+  },
+  {
+    question: 'How can I be sure my funds are used appropriately?',
+    answer: 'We are committed to transparency. Regular updates on fund allocation and impact reports are shared with our donors.'
+  }
+]
 
 export default function DonatePage() {
   return (
-    <main>
-      {/* Header Section */}
-      <section className="bg-gradient-to-r from-green-dark to-black text-white py-20">
-        <div className="container">
-          <div className="max-w-3xl mx-auto text-center">
-            <h1 className="text-5xl font-bold mb-6">
+    <main className="flex flex-col min-h-screen">
+      {/* Hero Section */}
+      <section className="relative bg-gradient-to-r from-green-900 to-green-800 text-white py-24">
+        <div className="absolute inset-0 bg-black/20" />
+        <div className="container relative">
+          <div className="max-w-3xl mx-auto text-center space-y-6">
+            <h1 className="text-4xl sm:text-5xl font-bold">
               Be a Part of This Noble Mission
             </h1>
-            <p className="text-xl mb-8">
-              Your contributions help spread authentic Islamic knowledge to learners worldwide, preserving our heritage for generations to come.
+            <p className="text-xl opacity-90">
+              Your contributions help spread authentic Islamic knowledge to learners worldwide,
+              preserving our heritage for generations to come.
             </p>
-            <div className="flex justify-center gap-4">
-              <a href="#donate-form" className="btn-primary">
-                Donate Now
-              </a>
-              <a href="#sponsorship" className="btn-secondary">
-                Sponsor a Student
-              </a>
+            <div className="flex flex-col sm:flex-row justify-center gap-4 pt-4">
+              <Button size="lg" asChild>
+                <a href="#donate-form">Donate Now</a>
+              </Button>
+              <Button size="lg" variant="outline" asChild>
+                <a href="#sponsorship">Sponsor a Student</a>
+              </Button>
             </div>
           </div>
         </div>
@@ -29,44 +139,31 @@ export default function DonatePage() {
       {/* Why Donate Section */}
       <section className="py-16">
         <div className="container">
-          <h2 className="text-3xl font-bold text-center mb-12">Why Your Support Matters</h2>
-          <div className="grid md:grid-cols-2 gap-12 items-center">
-            <div className="space-y-6">
-              <div className="flex items-start">
-                <div className="p-3 bg-gold/10 rounded-lg mr-4">
-                  <FaGraduationCap className="w-6 h-6 text-gold" />
-                </div>
-                <div>
-                  <h3 className="text-xl font-semibold mb-2">Empowering Students</h3>
-                  <p className="text-gray-600">Enable learners from underprivileged backgrounds to access quality Islamic education.</p>
-                </div>
-              </div>
-              <div className="flex items-start">
-                <div className="p-3 bg-gold/10 rounded-lg mr-4">
-                  <FaBook className="w-6 h-6 text-gold" />
-                </div>
-                <div>
-                  <h3 className="text-xl font-semibold mb-2">Preserving Heritage</h3>
-                  <p className="text-gray-600">Assist in digitizing and teaching classical texts (matn) and poetic works (nazm).</p>
-                </div>
-              </div>
-              <div className="flex items-start">
-                <div className="p-3 bg-gold/10 rounded-lg mr-4">
-                  <FaGlobe className="w-6 h-6 text-gold" />
-                </div>
-                <div>
-                  <h3 className="text-xl font-semibold mb-2">Expanding Our Reach</h3>
-                  <p className="text-gray-600">Fund technological upgrades and course development to serve more Muslims globally.</p>
-                </div>
-              </div>
-            </div>
-            <div className="relative">
-              <img
-                src="/images/student-reading.jpg"
-                alt="Student reading Islamic text"
-                className="rounded-lg shadow-xl"
-              />
-            </div>
+          <div className="text-center mb-12">
+            <h2 className="text-3xl font-bold">Why Your Support Matters</h2>
+            <p className="text-muted-foreground mt-2">
+              Your donation makes a real difference in spreading Islamic knowledge
+            </p>
+          </div>
+          <div className="grid md:grid-cols-3 gap-8">
+            {features.map((feature) => {
+              const Icon = feature.icon
+              return (
+                <Card key={feature.title} className="border-none shadow-none">
+                  <CardHeader>
+                    <div className="flex items-center space-x-4">
+                      <div className="p-2 bg-primary/10 rounded-lg">
+                        <Icon className="w-6 h-6 text-primary" />
+                      </div>
+                      <CardTitle>{feature.title}</CardTitle>
+                    </div>
+                  </CardHeader>
+                  <CardContent>
+                    <CardDescription>{feature.description}</CardDescription>
+                  </CardContent>
+                </Card>
+              )
+            })}
           </div>
         </div>
       </section>
@@ -74,28 +171,30 @@ export default function DonatePage() {
       {/* Donation Options */}
       <section className="py-16 bg-gray-50">
         <div className="container">
-          <h2 className="text-3xl font-bold text-center mb-12">How You Can Contribute</h2>
-          <div className="grid md:grid-cols-4 gap-8">
-            <div className="card p-6">
-              <h3 className="text-xl font-semibold mb-4">One-Time Donation</h3>
-              <p className="text-gray-600 mb-6">Make a single contribution to support a specific project or area of need.</p>
-              <a href="#donate-form" className="btn-primary block text-center">Donate Once</a>
-            </div>
-            <div className="card p-6">
-              <h3 className="text-xl font-semibold mb-4">Monthly Sponsorship</h3>
-              <p className="text-gray-600 mb-6">Become a regular sponsor to ensure continuous impact and progress.</p>
-              <a href="#donate-form" className="btn-primary block text-center">Start Sponsoring</a>
-            </div>
-            <div className="card p-6">
-              <h3 className="text-xl font-semibold mb-4">Scholarship Fund</h3>
-              <p className="text-gray-600 mb-6">Sponsor a student's learning journey to help them access courses and resources.</p>
-              <a href="#sponsorship" className="btn-primary block text-center">Sponsor a Student</a>
-            </div>
-            <div className="card p-6">
-              <h3 className="text-xl font-semibold mb-4">Specific Projects</h3>
-              <p className="text-gray-600 mb-6">Choose to support particular projects like developing new courses or expanding our library.</p>
-              <a href="#projects" className="btn-primary block text-center">View Projects</a>
-            </div>
+          <div className="text-center mb-12">
+            <h2 className="text-3xl font-bold">How You Can Contribute</h2>
+            <p className="text-muted-foreground mt-2">Choose the way that works best for you</p>
+          </div>
+          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
+            {donationOptions.map((option) => {
+              const Icon = option.icon
+              return (
+                <Card key={option.title}>
+                  <CardHeader>
+                    <div className="p-2 bg-primary/10 rounded-lg w-fit">
+                      <Icon className="w-6 h-6 text-primary" />
+                    </div>
+                    <CardTitle className="mt-4">{option.title}</CardTitle>
+                    <CardDescription>{option.description}</CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    <Button className="w-full" asChild>
+                      <a href={option.link}>{option.buttonText}</a>
+                    </Button>
+                  </CardContent>
+                </Card>
+              )
+            })}
           </div>
         </div>
       </section>
@@ -103,30 +202,31 @@ export default function DonatePage() {
       {/* Sponsorship Impact */}
       <section id="sponsorship" className="py-16">
         <div className="container">
-          <h2 className="text-3xl font-bold text-center mb-12">Your Sponsorship Changes Lives</h2>
-          <div className="grid md:grid-cols-4 gap-8 mb-12">
-            <div className="card p-6 text-center">
-              <h3 className="text-2xl font-bold text-gold mb-2">$25</h3>
-              <p>Covers a single course for one student</p>
-            </div>
-            <div className="card p-6 text-center">
-              <h3 className="text-2xl font-bold text-gold mb-2">$50</h3>
-              <p>Funds one month of platform maintenance</p>
-            </div>
-            <div className="card p-6 text-center">
-              <h3 className="text-2xl font-bold text-gold mb-2">$100</h3>
-              <p>Supports digitizing and publishing a new Islamic text</p>
-            </div>
-            <div className="card p-6 text-center">
-              <h3 className="text-2xl font-bold text-gold mb-2">$500</h3>
-              <p>Provides full scholarship to a student for six months</p>
-            </div>
+          <div className="text-center mb-12">
+            <h2 className="text-3xl font-bold">Your Sponsorship Changes Lives</h2>
+            <p className="text-muted-foreground mt-2">See how your contributions make a difference</p>
           </div>
-          <div className="max-w-2xl mx-auto">
-            <blockquote className="text-center italic text-gray-600">
-              "Thanks to a sponsor, I was able to complete my foundational Arabic studies and now understand Quranic texts better. May Allah reward them!"
-              <footer className="mt-4 font-semibold">– Fatimah, Ghana</footer>
-            </blockquote>
+          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6 mb-12">
+            {sponsorshipLevels.map((level) => (
+              <Card key={level.amount}>
+                <CardHeader>
+                  <CardTitle className="text-3xl font-bold">${level.amount}</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <p className="text-muted-foreground">{level.description}</p>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+          <div className="max-w-3xl mx-auto">
+            <Card className="bg-primary/5">
+              <CardContent className="pt-6">
+                <blockquote className="text-lg italic text-center">
+                  "Thanks to a sponsor, I was able to complete my foundational Arabic studies and now understand Quranic texts better. May Allah reward them!"
+                  <footer className="text-right mt-4 text-muted-foreground">– Fatimah, Ghana</footer>
+                </blockquote>
+              </CardContent>
+            </Card>
           </div>
         </div>
       </section>
@@ -134,97 +234,79 @@ export default function DonatePage() {
       {/* Donation Form */}
       <section id="donate-form" className="py-16 bg-gray-50">
         <div className="container">
-          <h2 className="text-3xl font-bold text-center mb-12">Donate Securely</h2>
           <div className="max-w-2xl mx-auto">
-            <DonationForm />
+            <div className="text-center mb-8">
+              <h2 className="text-3xl font-bold">Donate Securely</h2>
+              <p className="text-muted-foreground mt-2">
+                Your generosity helps us continue our mission
+              </p>
+            </div>
+            <Card>
+              <CardContent className="pt-6">
+                <DonationForm />
+              </CardContent>
+            </Card>
           </div>
         </div>
       </section>
 
-      {/* How Donations Are Used */}
+      {/* Fund Allocation */}
       <section className="py-16">
         <div className="container">
-          <h2 className="text-3xl font-bold text-center mb-12">Transparency and Accountability</h2>
-          <div className="grid md:grid-cols-2 gap-12 items-center">
-            <div className="space-y-6">
-              <div className="flex items-center justify-between">
-                <span>Scholarships and student sponsorships</span>
-                <span className="font-bold">50%</span>
-              </div>
-              <div className="w-full bg-gray-200 rounded-full h-2.5">
-                <div className="bg-gold h-2.5 rounded-full" style={{ width: '50%' }}></div>
-              </div>
-              <div className="flex items-center justify-between">
-                <span>Course creation and content development</span>
-                <span className="font-bold">30%</span>
-              </div>
-              <div className="w-full bg-gray-200 rounded-full h-2.5">
-                <div className="bg-gold h-2.5 rounded-full" style={{ width: '30%' }}></div>
-              </div>
-              <div className="flex items-center justify-between">
-                <span>Platform maintenance and upgrades</span>
-                <span className="font-bold">15%</span>
-              </div>
-              <div className="w-full bg-gray-200 rounded-full h-2.5">
-                <div className="bg-gold h-2.5 rounded-full" style={{ width: '15%' }}></div>
-              </div>
-              <div className="flex items-center justify-between">
-                <span>Administrative costs</span>
-                <span className="font-bold">5%</span>
-              </div>
-              <div className="w-full bg-gray-200 rounded-full h-2.5">
-                <div className="bg-gold h-2.5 rounded-full" style={{ width: '5%' }}></div>
-              </div>
-            </div>
-            <div className="relative">
-              <div className="aspect-square rounded-full border-8 border-gold relative">
-                {/* Pie chart segments would go here */}
-              </div>
+          <div className="text-center mb-12">
+            <h2 className="text-3xl font-bold">Transparency and Accountability</h2>
+            <p className="text-muted-foreground mt-2">How your donations are used</p>
+          </div>
+          <div className="max-w-2xl mx-auto">
+            <div className="space-y-4">
+              {fundAllocation.map((item) => (
+                <div key={item.label} className="flex items-center gap-4">
+                  <div className="w-20 text-right font-bold">{item.percentage}%</div>
+                  <div className="flex-1">
+                    <div className="h-4 bg-gray-100 rounded-full overflow-hidden">
+                      <div 
+                        className="h-full bg-primary"
+                        style={{ width: `${item.percentage}%` }}
+                      />
+                    </div>
+                  </div>
+                  <div className="flex-1 text-sm text-muted-foreground">{item.label}</div>
+                </div>
+              ))}
             </div>
           </div>
         </div>
       </section>
 
-      {/* FAQ */}
+      {/* FAQs */}
       <section className="py-16 bg-gray-50">
         <div className="container">
-          <h2 className="text-3xl font-bold text-center mb-12">Frequently Asked Questions</h2>
+          <div className="text-center mb-12">
+            <h2 className="text-3xl font-bold">Frequently Asked Questions</h2>
+          </div>
           <div className="max-w-2xl mx-auto space-y-6">
-            <div className="card p-6">
-              <h3 className="text-xl font-semibold mb-2">Can I donate anonymously?</h3>
-              <p className="text-gray-600">Yes, you can choose to remain anonymous during the donation process.</p>
-            </div>
-            <div className="card p-6">
-              <h3 className="text-xl font-semibold mb-2">Will I receive a receipt?</h3>
-              <p className="text-gray-600">Yes, all donors will receive a receipt for their contributions via email.</p>
-            </div>
-            <div className="card p-6">
-              <h3 className="text-xl font-semibold mb-2">How can I be sure my funds are used appropriately?</h3>
-              <p className="text-gray-600">We are committed to transparency. Regular updates on fund allocation and impact reports are shared with our donors.</p>
-            </div>
+            {faqs.map((faq) => (
+              <Card key={faq.question}>
+                <CardHeader>
+                  <CardTitle className="text-lg">{faq.question}</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <p className="text-muted-foreground">{faq.answer}</p>
+                </CardContent>
+              </Card>
+            ))}
           </div>
         </div>
       </section>
 
-      {/* Final Appeal */}
-      <section className="py-16 bg-gradient-to-r from-gold to-gold-secondary text-white">
-        <div className="container">
-          <div className="max-w-3xl mx-auto text-center">
-            <h2 className="text-3xl font-bold mb-6">Every Contribution Matters</h2>
-            <p className="text-xl mb-8">
-              Whether it's $10 or $1,000, your support helps preserve and spread the knowledge that strengthens our faith. Together, we can make Islamic learning accessible to all.
-            </p>
-            <div className="flex justify-center gap-4">
-              <a href="#donate-form" className="btn-primary bg-white text-gold hover:bg-gray-100">
-                Donate Now
-              </a>
-              <a href="/contact" className="btn-secondary border-white text-white hover:bg-white/10">
-                Contact Us for More Ways to Help
-              </a>
-            </div>
-          </div>
-        </div>
-      </section>
+      <CallToAction 
+        title="Every Contribution Matters"
+        description="Whether it's $10 or $1,000, your support helps preserve and spread the knowledge that strengthens our faith. Together, we can make Islamic learning accessible to all."
+        primaryButtonText="Donate Now"
+        secondaryButtonText="Contact Us for More Ways to Help"
+        primaryButtonLink="#donate-form"
+        secondaryButtonLink="/contact"
+      />
     </main>
-  );
+  )
 }

@@ -5,11 +5,13 @@ import { useState } from 'react';
 import { FaBars, FaTimes, FaUserCircle } from 'react-icons/fa';
 import { useAuth } from '@/hooks/useAuth';
 import Logo from './Logo';
+import { usePathname } from 'next/navigation';
 
 export default function Navbar() {
   const [isOpen, setIsOpen] = useState(false);
   const [showUserMenu, setShowUserMenu] = useState(false);
   const { user, logout } = useAuth();
+  const pathname = usePathname()
 
   const handleLogout = () => {
     logout();
@@ -32,17 +34,17 @@ export default function Navbar() {
 
           {/* Desktop Navigation */}
           <div className="hidden md:flex items-center space-x-8">
-            <Link href="/courses" className="nav-link">
-              Courses
+            <Link href="/courses" className={`nav-link ${pathname === '/courses' ? 'text-gold' : ''}`}>
+                Courses
             </Link>
-            <Link href="/courses/catalog" className="nav-link">
-              Course Catalog
+            <Link href="/courses/catalog" className={`nav-link ${pathname === '/courses/catalog' ? 'text-gold' : ''}`}>
+                Course Catalog
             </Link>
-            <Link href="/about" className="nav-link">
-              About
+            <Link href="/about" className={`nav-link ${pathname === '/about' ? 'text-gold' : ''}`}>
+                About
             </Link>
-            <Link href="/donate" className="nav-link">
-              Donate
+            <Link href="/donate" className={`nav-link ${pathname === '/donate' ? 'text-gold' : ''}`}>
+                Donate
             </Link>
             
             {user ? (
@@ -58,18 +60,26 @@ export default function Navbar() {
                 {showUserMenu && (
                   <div className="absolute right-0 mt-2 w-48 rounded-md shadow-lg bg-white ring-1 ring-black ring-opacity-5">
                     <div className="py-1">
-                      <Link
-                        href="/dashboard"
-                        className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
-                      >
-                        Dashboard
-                      </Link>
-                      <Link
-                        href="/dashboard/profile"
-                        className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
-                      >
-                        Profile
-                      </Link>
+                      {user.roles.includes('student') && (
+                        <>
+                          <Link href="/dashboard" className={`block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 ${pathname === '/dashboard' ? 'bg-gray-100' : ''}`}>
+                              Dashboard
+                          </Link>
+                          <Link href="/dashboard/profile" className={`block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 ${pathname === '/dashboard/profile' ? 'bg-gray-100' : ''}`}>
+                              Profile
+                          </Link>
+                        </>
+                      )}
+                      {user.roles.includes('instructor') && (
+                        <>
+                          <Link href="/instructor" className={`block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 ${pathname === '/instructor' ? 'bg-gray-100' : ''}`}>
+                              Instructor Platform
+                          </Link>
+                          <Link href="/instructor/profile" className={`block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 ${pathname === '/instructor/profile' ? 'bg-gray-100' : ''}`}>
+                              Profile
+                          </Link>
+                        </>
+                      )}
                       <button
                         onClick={handleLogout}
                         className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
@@ -97,26 +107,26 @@ export default function Navbar() {
         {isOpen && (
           <div className="md:hidden py-4">
             <div className="flex flex-col space-y-4">
-              <Link href="/courses" className="nav-link">
-                Courses
+              <Link href="/courses" className={`nav-link ${pathname === '/courses' ? 'text-gold' : ''}`}>
+                  Courses
               </Link>
-              <Link href="/courses/catalog" className="nav-link">
-                Course Catalog
+              <Link href="/courses/catalog" className={`nav-link ${pathname === '/courses/catalog' ? 'text-gold' : ''}`}>
+                  Course Catalog
               </Link>
-              <Link href="/about" className="nav-link">
-                About
+              <Link href="/about" className={`nav-link ${pathname === '/about' ? 'text-gold' : ''}`}>
+                  About
               </Link>
-              <Link href="/donate" className="nav-link">
-                Donate
+              <Link href="/donate" className={`nav-link ${pathname === '/donate' ? 'text-gold' : ''}`}>
+                  Donate
               </Link>
               
               {user ? (
                 <>
-                  <Link href="/dashboard" className="nav-link">
-                    Dashboard
+                  <Link href="/dashboard" className={`nav-link ${pathname === '/dashboard' ? 'text-gold' : ''}`}>
+                      Dashboard
                   </Link>
-                  <Link href="/profile" className="nav-link">
-                    Profile
+                  <Link href="/profile" className={`nav-link ${pathname === '/profile' ? 'text-gold' : ''}`}>
+                      Profile
                   </Link>
                   <button
                     onClick={handleLogout}

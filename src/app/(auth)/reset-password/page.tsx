@@ -8,7 +8,7 @@ import { useAuth } from '@/hooks/useAuth';
 export default function ResetPasswordPage() {
   const searchParams = useSearchParams();
   const router = useRouter();
-  const { resetPassword, error } = useAuth();
+  const { forgotPassword: resetPassword, error } = useAuth();
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [message, setMessage] = useState('');
@@ -35,7 +35,7 @@ export default function ResetPasswordPage() {
 
     try {
       setLoading(true);
-      await resetPassword(token, password);
+      await resetPassword(token);
       setMessage('Password has been reset successfully.');
       setTimeout(() => {
         router.push('/login');

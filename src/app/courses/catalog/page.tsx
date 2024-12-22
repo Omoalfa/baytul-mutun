@@ -2,19 +2,37 @@
 
 import { useState, useEffect } from 'react';
 import { useCourses } from '@/hooks/useApi';
-import { Course } from '@/types';
 import Link from 'next/link';
 import Image from 'next/image';
+import { useRouter, useSearchParams } from 'next/navigation';
+import CoursePlaceholder from './components/CoursePlaceholder';
+import { formatToNaira } from '@/lib/utils/currency';
 
 const ITEMS_PER_PAGE = 9;
-
 const levels = ['All Levels', 'Beginner', 'Intermediate', 'Advanced'] as const;
 
-export default function CourseCatalog() {
-  const [currentPage, setCurrentPage] = useState(1);
-  const [selectedLevel, setSelectedLevel] = useState<typeof levels[number]>('All Levels');
-  const [searchQuery, setSearchQuery] = useState('');
-  const [debouncedSearch, setDebouncedSearch] = useState('');
+export default function CourseList() {
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  
+  // Initialize state from URL parameters
+  const [currentPage, setCurrentPage] = useState(() => Number(searchParams.get('page')) || 1);
+  const [selectedLevel, setSelectedLevel] = useState<typeof levels[number]>(() => 
+    (searchParams.get('level') as typeof levels[number]) || 'All Levels'
+  );
+  const [searchQuery, setSearchQuery] = useState(() => searchParams.get('search') || '');
+  const [debouncedSearch, setDebouncedSearch] = useState(searchQuery);
+
+  // Update URL when filters change
+  useEffect(() => {
+    const params = new URLSearchParams();
+    if (currentPage > 1) params.set('page', currentPage.toString());
+    if (selectedLevel !== 'All Levels') params.set('level', selectedLevel);
+    if (searchQuery) params.set('search', searchQuery);
+    
+    const queryString = params.toString();
+    router.push(`/courses/catalog${queryString ? `?${queryString}` : ''}`, { scroll: false });
+  }, [currentPage, selectedLevel, searchQuery, router]);
 
   // Debounce search query
   useEffect(() => {
@@ -43,15 +61,7 @@ export default function CourseCatalog() {
   const totalPages = Math.ceil((coursesResponse?.total || 0) / ITEMS_PER_PAGE);
 
   return (
-    <div className="container mx-auto px-4 py-12">
-      {/* Header */}
-      <div className="text-center mb-12">
-        <h1 className="text-4xl font-bold text-gray-900 mb-4">Course Catalog</h1>
-        <p className="text-lg text-gray-600 max-w-2xl mx-auto">
-          Explore our comprehensive collection of Islamic courses, from beginner to advanced levels.
-        </p>
-      </div>
-
+    <>
       {/* Filters */}
       <div className="mb-8 flex flex-col md:flex-row gap-4 justify-between items-center">
         <div className="flex gap-4 items-center">
@@ -104,13 +114,18 @@ export default function CourseCatalog() {
                 className="group bg-white rounded-lg shadow-md overflow-hidden hover:shadow-xl transition-shadow"
               >
                 <div className="relative h-48">
+                {course.image ? (
                   <Image
                     src={course.image}
                     alt={course.title}
                     fill
                     className="object-cover"
+                    sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
                   />
-                </div>
+                ) : (
+                  <CoursePlaceholder title={course.title} />
+                )}
+              </div>
                 <div className="p-6">
                   <div className="flex items-center justify-between mb-2">
                     <span className="px-3 py-1 text-sm text-gold border border-gold rounded-full">
@@ -126,11 +141,11 @@ export default function CourseCatalog() {
                   </p>
                   <div className="flex items-center justify-between">
                     <span className="text-sm text-gray-500">
-                      By {course.instructor}
+                      By {course.instructor?.firstName} {course.instructor?.lastName}
                     </span>
                     {course.price ? (
                       <span className="text-lg font-semibold text-gold">
-                        ${course.price}
+                        {formatToNaira(course.price)}
                       </span>
                     ) : (
                       <span className="text-lg font-semibold text-green-600">
@@ -189,6 +204,6 @@ export default function CourseCatalog() {
           )}
         </>
       )}
-    </div>
+    </>
   );
 }
