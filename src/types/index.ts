@@ -1,3 +1,13 @@
+// User Types
+export interface User {
+  id: string;
+  name: string;
+  email: string;
+  image?: string;
+  role: 'student' | 'instructor' | 'admin';
+  isVerified?: boolean;
+}
+
 // Course Types
 export interface Course {
   id: string;
@@ -10,6 +20,8 @@ export interface Course {
   enrolledStudents?: number;
   price?: number;
   curriculum?: CurriculumItem[];
+  revenue?: number;
+  isPublished?: boolean;
 }
 
 export interface CurriculumItem {

@@ -1,59 +1,190 @@
+import { CourseFilters } from '@/hooks/useApi';
 import { Course, Instructor, DonationOption, AboutContent, ApiResponse, PaginatedResponse } from '@/types';
+import { CreateCourseDto, CreateCourseModuleDto, CreateQuizQuestionDto, CourseModule, QuizQuestion } from '@/types/course';
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api';
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
+
+export interface LoginData {
+  email: string;
+  password: string;
+}
+
+export interface RegisterData {
+  email: string;
+  password: string;
+  firstName: string;
+  lastName: string;
+}
+
+export interface AuthResponse {
+  user: any;
+  token: string;
+}
 
 class ApiError extends Error {
   constructor(public status: number, message: string) {
     super(message);
-    this.name = 'ApiError';
   }
 }
 
 async function fetchApi<T>(
   endpoint: string,
-  options: RequestInit = {}
-): Promise<T> {
+  options: RequestInit = {},
+  method: 'POST' | 'PATCH' | 'DELETE' | 'GET' | 'PUT' = 'GET'
+): Promise<ApiResponse<T>> {
   const url = `${API_BASE_URL}${endpoint}`;
+  const token = localStorage ? localStorage.getItem("token") : null;
+  
+  const isFormData = options.body instanceof FormData;
+  
   const response = await fetch(url, {
     ...options,
+    method,
     headers: {
-      'Content-Type': 'application/json',
+      ...(!isFormData ? { 'Content-Type': 'application/json' } : {}),
+      ...(token ? { 'Authorization': `Bearer ${token}` } : {}),
       ...options.headers,
     },
   });
 
-  const data = await response.json();
-
-  if (!response.ok) {
-    throw new ApiError(response.status, data.error || 'Something went wrong');
+  const contentType = response.headers.get('content-type');
+  let responseData;
+  
+  if (contentType && contentType.includes('application/json')) {
+    responseData = await response.json();
+  } else {
+    responseData = await response.text();
   }
 
-  return data;
+  if (!response.ok) {
+    throw new ApiError(response.status, responseData.message || responseData || 'Something went wrong');
+  }
+
+  // Wrap the response data in the ApiResponse format
+  return {
+    data: responseData
+  };
 }
 
 export const api = {
+  // Auth
+  async login(data: LoginData) {
+    return await fetchApi<{ user: any; token: string }>('/auth/login', {
+      body: JSON.stringify(data),
+    }, 'POST');
+  },    
+
+  async register(data: RegisterData) {
+    return await fetchApi<{ user: any; token: string }>('/auth/register', {
+      body: JSON.stringify(data),
+    }, 'POST');
+  },
+
+  async getProfile() {
+    return await fetchApi<any>('/users/profile');
+  },
+
+  async verifyEmail(token: string) {
+    return await fetchApi<{ message: string }>('/auth/verify-email?token=' + token, {
+      body: JSON.stringify({ token }),
+    }, 'POST');
+  },
+
+  async resendVerification(email: string) {
+    return await fetchApi<{ message: string }>('/auth/resend-verification', {
+      body: JSON.stringify({ email }),
+    }, 'POST');
+  },
+
+  async forgotPassword(email: string) {
+    return await fetchApi<{ message: string }>('/auth/forgot-password', {
+      body: JSON.stringify({ email }),
+    }, 'POST');
+  },
+
+  async facebookLogin(accessToken: string) {
+    return await fetchApi<{ token: string }>('/auth/facebook', {
+      body: JSON.stringify({ accessToken }),
+    }, 'POST');
+  },
+
+  async googleLogin(accessToken: string) {
+    return await fetchApi<{ token: string }>('/auth/google', {
+      body: JSON.stringify({ accessToken }),
+    }, 'POST');
+  },
+
+  async logout() {
+    localStorage.removeItem('token');
+  },
+
   // Courses
   async getCourses(page = 1, limit = 10, filters?: { level?: string; search?: string }) {
-    const url = new URL(`${API_BASE_URL}/courses`);
-    url.searchParams.set('page', page.toString());
-    url.searchParams.set('limit', limit.toString());
-    
-    if (filters?.level && filters.level !== 'All Levels') {
-      url.searchParams.set('level', filters.level);
-    }
-    if (filters?.search) {
-      url.searchParams.set('search', filters.search);
-    }
-
-    const response = await fetch(url.toString());
-    if (!response.ok) {
-      throw new Error('Failed to fetch courses');
-    }
-    return response.json();
+    const searchParams = new URLSearchParams({
+      page: page.toString(),
+      limit: limit.toString(),
+      ...(filters?.level && { level: filters.level }),
+      ...(filters?.search && { search: filters.search }),
+    });
+    return fetchApi<PaginatedResponse<Course>>(`/courses?${searchParams}`);
   },
   
-  getCourse: (id: string) =>
-    fetchApi<ApiResponse<Course>>(`/courses/${id}`),
+  getCourse(id: string) {
+    return fetchApi<Course>(`/courses/${id}`);
+  },
+
+  fetchCourseModules(courseId: number) {
+    return fetchApi<CourseModule[]>(`/courses/${courseId}/modules`);
+  },
+
+  createCourse(data: CreateCourseDto & { avatar?: File }) {
+    const formData = new FormData();
+    
+  // Append course data
+  Object.entries(data).forEach(([key, value]) => {
+    if (key === 'avatar' && value instanceof File) {
+      formData.append(key, value);
+    } else if (Array.isArray(value)) {
+      value.forEach((item) => formData.append(key + '[]', item));
+    } else if (value !== undefined) {
+      formData.append(key, value.toString());
+    }
+  });
+    
+    return fetchApi<Course>('/courses', {
+      method: 'POST',
+      body: formData,
+      // Don't set Content-Type header, let the browser set it with the boundary
+      headers: {},
+    }, 'POST');
+  },
+
+  // Course Modules
+  addModuleToCourse(courseId: number, data: CreateCourseModuleDto, video?: File, audio?: File) {
+    const formData = new FormData();
+    formData.append('data', JSON.stringify(data));
+    if (video) formData.append('video', video);
+    if (audio) formData.append('audio', audio);
+
+    return fetchApi<CourseModule>(`/courses/${courseId}/module`, {
+      method: 'POST',
+      body: formData,
+    });
+  },
+
+  addQuizToModule(courseId: number, moduleId: number, data: CreateQuizQuestionDto) {
+    return fetchApi<QuizQuestion>(`/courses/${courseId}/module/${moduleId}/quiz`, {
+      method: 'POST',
+      body: JSON.stringify(data),
+    });
+  },
+
+  addBulkQuizToModule(courseId: number, moduleId: number, data: CreateQuizQuestionDto[]) {
+    return fetchApi<QuizQuestion[]>(`/courses/${courseId}/module/${moduleId}/quiz/bulk`, {
+      method: 'POST',
+      body: JSON.stringify(data),
+    });
+  },
 
   // Instructors
   getInstructors: () =>
@@ -61,6 +192,12 @@ export const api = {
   
   getInstructor: (id: string) =>
     fetchApi<ApiResponse<Instructor>>(`/instructors/${id}`),
+
+  getInstructorCourses: (page: number, limit: number, filters?: CourseFilters) =>
+    fetchApi<PaginatedResponse<Course>>(`/instructors/courses?page=${page}&limit=${limit}&${filters?.search ? `search=${filters.search}` : ''}`),
+
+  getInstructorCourseDetails: (id: string) =>
+    fetchApi<ApiResponse<Course>>(`/instructors/courses/${id}`),
 
   // Donations
   getDonationOptions: () =>

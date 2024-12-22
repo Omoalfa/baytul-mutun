@@ -1,8 +1,7 @@
-'use client';
-
 import Link from 'next/link';
 import { FaBook, FaGraduationCap, FaUsers, FaChalkboardTeacher, FaClock, FaGlobe } from 'react-icons/fa';
 import CourseCard from '@/components/CourseCard';
+import CallToAction from '@/components/CallToAction';
 
 const featuredCourses = [
   {
@@ -82,29 +81,33 @@ const howItWorks = [
 ];
 
 export default function Home() {
+  console.log("where did you run!")
   return (
     <main>
       {/* Hero Section */}
-      <section className="bg-gradient-to-r from-green-dark to-black text-white py-20">
-        <div className="container">
-          <div className="max-w-3xl mx-auto text-center">
-            <h1 className="text-5xl font-bold mb-6">
-              Learn Classical Islamic Texts Online
-            </h1>
-            <p className="text-xl mb-8">
-              Access authentic Islamic knowledge from qualified scholars through our comprehensive online platform.
-            </p>
-            <div className="flex justify-center gap-4">
-              <Link href="/courses">
-                <button className="btn-primary">Browse Courses</button>
-              </Link>
-              <Link href="/about">
-                <button className="btn-secondary">Learn More</button>
-              </Link>
+      <section className="relative bg-cover bg-center min-h-[70vh] flex items-center" style={{
+            backgroundImage: "url('/images/hero.jpeg')"
+          }}>
+          <div className="absolute inset-0 bg-gradient-to-r from-green-dark/90 to-black/90"></div>
+          <div className="container relative z-10">
+            <div className="max-w-3xl mx-auto text-center">
+              <h1 className="text-5xl font-bold mb-6 text-white">
+                Learn Classical Islamic Texts Online
+              </h1>
+              <p className="text-xl mb-8 text-white">
+                Access authentic Islamic knowledge from qualified scholars through our comprehensive online platform.
+              </p>
+              <div className="flex justify-center gap-4">
+                <Link href="/courses">
+                  <button className="btn-primary">Browse Courses</button>
+                </Link>
+                <Link href="/about">
+                  <button className="btn-secondary">Learn More</button>
+                </Link>
+              </div>
             </div>
           </div>
-        </div>
-      </section>
+        </section>
 
       {/* Why Choose Us */}
       <section className="py-16 bg-gray-50">

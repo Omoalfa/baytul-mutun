@@ -39,8 +39,8 @@ export default function CourseCatalog() {
     }
   );
 
-  const courses = coursesResponse?.data || [];
-  const totalPages = Math.ceil((coursesResponse?.total || 0) / ITEMS_PER_PAGE);
+  const courses = coursesResponse?.data?.data || [];
+  const totalPages = Math.ceil((coursesResponse?.data?.total || 0) / ITEMS_PER_PAGE);
 
   return (
     <div className="container mx-auto px-4 py-12">
