@@ -17,7 +17,7 @@ interface PageProps {
 
 export default function ModuleDetailsPage({ params }: PageProps) {
   const router = useRouter();
-  const { data: { data: module }, isLoading } = useModuleDetails(params.moduleId, params.id);
+  const { data: moduleResponse, isLoading } = useModuleDetails(params.moduleId, params.id);
 
   if (isLoading) {
     return (
@@ -27,6 +27,8 @@ export default function ModuleDetailsPage({ params }: PageProps) {
     );
   }
 
+  const module = moduleResponse?.data;
+
   if (!module) {
     return null;
   }
@@ -35,21 +37,21 @@ export default function ModuleDetailsPage({ params }: PageProps) {
     <Card>
       <CardHeader>
         <div className="flex items-center justify-between">
-          <CardTitle>{module.module.title}</CardTitle>
-          <Badge>Module {module.module.order}</Badge>
+          <CardTitle>{module?.module?.title}</CardTitle>
+          <Badge>Module {module?.module?.order}</Badge>
         </div>
       </CardHeader>
       <CardContent>
         <Suspense fallback={<div>Loading content...</div>}>
           <ContentViewer
             contents={[
-              { type: 'video', url: module.module.videoUrl, title: module.module.title },
-              { type: 'audio', url: module.module.audioUrl, title: module.module.title },
-              { type: 'pdf', url: module.module.attachments[0], title: module.module.title },
+              { type: 'video', url: module?.module?.videoUrl, title: module?.module?.title },
+              { type: 'audio', url: module?.module?.audioUrl, title: module?.module?.title },
+              { type: 'pdf', url: module?.module?.attachments[0], title: module?.module?.title },
             ]}
             moduleId={params.moduleId}
-            grade={module.grade}
-            hasAttemptedTest={!!module.attemptedQuestions}
+            grade={module?.totalScore / (module?.maxPossibleScore ?? 5) * 100}
+            hasAttemptedTest={!!module?.attemptedQuestions}
             onStartTest={() => {
               router.push(`/dashboard/courses/${params.id}/modules/${params.moduleId}/test`);
             }}

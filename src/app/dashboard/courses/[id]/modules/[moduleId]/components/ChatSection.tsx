@@ -2,10 +2,10 @@
 
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
-import { Card } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Send } from 'lucide-react';
+import { cn } from '@/lib/utils';
 
 interface Message {
   id: string;
@@ -23,25 +23,23 @@ export function ChatSection({ instructorName, instructorAvatar }: ChatSectionPro
   const [messages, setMessages] = useState<Message[]>([]);
   const [newMessage, setNewMessage] = useState('');
 
-  const handleSendMessage = (e: React.FormEvent) => {
-    e.preventDefault();
+  const handleSendMessage = () => {
     if (!newMessage.trim()) return;
 
-    // Add user message
-    const userMessage: Message = {
-      id: Date.now().toString(),
+    const message: Message = {
+      id: Math.random().toString(),
       content: newMessage,
       sender: 'user',
       timestamp: new Date(),
     };
 
-    setMessages((prev) => [...prev, userMessage]);
+    setMessages([...messages, message]);
     setNewMessage('');
 
     // Simulate instructor response (replace with actual API call)
     setTimeout(() => {
       const instructorMessage: Message = {
-        id: (Date.now() + 1).toString(),
+        id: (Math.random() + 1).toString(),
         content: "Thank you for your question. I'll get back to you shortly.",
         sender: 'instructor',
         timestamp: new Date(),
@@ -51,7 +49,7 @@ export function ChatSection({ instructorName, instructorAvatar }: ChatSectionPro
   };
 
   return (
-    <Card>
+    <div className="flex flex-col h-full relative">
       <div className="p-4 border-b">
         <h3 className="font-semibold">Chat with Instructor</h3>
         <p className="text-sm text-muted-foreground">
@@ -59,25 +57,27 @@ export function ChatSection({ instructorName, instructorAvatar }: ChatSectionPro
         </p>
       </div>
 
-      <ScrollArea className="h-[300px] p-4">
+      <ScrollArea className="flex-1 p-4 pb-20">
         <div className="space-y-4">
           {messages.map((message) => (
             <div
               key={message.id}
-              className={`flex ${
-                message.sender === 'user' ? 'justify-end' : 'justify-start'
-              }`}
+              className={cn(
+                "flex",
+                message.sender === 'user' ? "justify-end" : "justify-start"
+              )}
             >
               <div
-                className={`rounded-lg px-4 py-2 max-w-[80%] ${
-                  message.sender === 'user'
-                    ? 'bg-primary text-primary-foreground'
-                    : 'bg-muted'
-                }`}
+                className={cn(
+                  "rounded-lg p-3 max-w-[80%]",
+                  message.sender === 'user' 
+                    ? "bg-green-100 text-green-900 ml-auto" 
+                    : "bg-amber-50 text-amber-900"
+                )}
               >
-                <p className="text-sm">{message.content}</p>
-                <span className="text-xs opacity-70">
-                  {message.timestamp.toLocaleTimeString()}
+                <p>{message.content}</p>
+                <span className="text-xs opacity-70 mt-1 block">
+                  {new Date(message.timestamp).toLocaleTimeString()}
                 </span>
               </div>
             </div>
@@ -85,17 +85,25 @@ export function ChatSection({ instructorName, instructorAvatar }: ChatSectionPro
         </div>
       </ScrollArea>
 
-      <form onSubmit={handleSendMessage} className="flex gap-2 p-4 border-t">
-        <Input
-          value={newMessage}
-          onChange={(e) => setNewMessage(e.target.value)}
-          placeholder="Type your message..."
-          className="flex-1"
-        />
-        <Button type="submit" size="icon">
-          <Send className="h-4 w-4" />
-        </Button>
-      </form>
-    </Card>
+      <div className="absolute bottom-0 left-0 right-0 p-4 bg-white border-t border-green-100">
+        <form
+          onSubmit={(e) => {
+            e.preventDefault();
+            handleSendMessage();
+          }}
+          className="flex gap-2"
+        >
+          <Input
+            value={newMessage}
+            onChange={(e) => setNewMessage(e.target.value)}
+            placeholder="Type your message..."
+            className="flex-1"
+          />
+          <Button type="submit" size="icon">
+            <Send className="h-4 w-4" />
+          </Button>
+        </form>
+      </div>
+    </div>
   );
 }

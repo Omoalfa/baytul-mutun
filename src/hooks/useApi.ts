@@ -25,6 +25,14 @@ export function useCourse(id: number) {
   });
 }
 
+export function useCourseModules(id: number) {
+  return useQuery({
+    queryKey: ['course', id],
+    queryFn: () => api.getCourseModules(id),
+    enabled: !!id,
+  });
+}
+
 export function useInstructors() {
   return useQuery({
     queryKey: ['instructors'],
@@ -157,9 +165,10 @@ export function useSubmitModuleTest() {
   return useMutation({
     mutationFn: ({ moduleId, answers, courseId }: { moduleId: number; courseId: number; answers: { questionId: number; answers: string[] }[] }) =>
       api.submitQuiz(moduleId, courseId, answers),
-    onSuccess: (_, { moduleId }) => {
+    onSuccess: (_, { moduleId, courseId }) => {
       queryClient.invalidateQueries({ queryKey: ['moduleDetails', moduleId] });
       queryClient.invalidateQueries({ queryKey: ['attemptedQuestions', moduleId] });
+      queryClient.invalidateQueries({ queryKey: ['enrolledCourseDetails', courseId] });
     },
   });
 }

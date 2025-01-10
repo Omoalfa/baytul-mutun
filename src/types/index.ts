@@ -81,7 +81,7 @@ export interface UserCourseModule {
   enrolledCourseId: number;
   enrolledCourse: EnrolledCourse;
   progress: number;
-  grade?: number;
+  moduleGrade?: number;
   status: 'not_started' | 'in_progress' | 'completed';
   lastAccessedAt?: Date;
   attemptedQuestions?: {
@@ -95,10 +95,10 @@ export interface UserCourseModule {
 }
 
 export enum QuestionType {
-  SINGLE_CHOICE = 'SINGLE_CHOICE',
-  MULTIPLE_CHOICE = 'MULTIPLE_CHOICE',
-  TRUE_FALSE = 'TRUE_FALSE',
-  SHORT_ANSWER = 'SHORT_ANSWER',
+  SINGLE_CHOICE = 'single_choice',
+  MULTIPLE_CHOICE = 'multiple_choice',
+  TRUE_FALSE = 'true_false',
+  SHORT_ANSWER = 'short_answer',
 }
 
 export interface QuizQuestion {

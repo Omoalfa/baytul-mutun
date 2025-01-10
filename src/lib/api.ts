@@ -69,9 +69,15 @@ async function fetchApi<T>(
     throw new ApiError(response.status, responseData.message || responseData || 'Something went wrong');
   }
 
-  // Wrap the response data in the ApiResponse format
+  // Check if the response is already in ApiResponse format
+  if (responseData && typeof responseData === 'object' && 'data' in responseData) {
+    return responseData as ApiResponse<T>;
+  }
+
+  // Wrap the response data in the ApiResponse format if it's not already
   return {
-    data: responseData
+    data: responseData,
+    message: 'Success',
   };
 }
 
@@ -175,6 +181,10 @@ export const api = {
     return await fetchApi<Course>(`/courses/${id}`);
   },
 
+  async getCourseModules(id: number) {
+    return await fetchApi<Course>(`/courses/${id}/modules`);
+  },
+
   async fetchCourseModules(courseId: number) {
     return await fetchApi<CourseModule[]>(`/courses/${courseId}/modules`);
   },
@@ -253,11 +263,11 @@ export const api = {
   },
 
   async getModuleQuestions(moduleId: number, courseId: number) {
-    return await fetchApi<QuizQuestion[]>(`/courses/${courseId}/modules/${moduleId}/quiz`);
+    return await fetchApi<QuizQuestion[]>(`/courses/my/${courseId}/modules/${moduleId}/quiz`);
   },
 
   async submitQuiz(moduleId: number, courseId: number, answers: { questionId: number; answers: string[] }[]) {
-    return await fetchApi<{ grade: number }>(`/courses/${courseId}/modules/${moduleId}/quiz`, {
+    return await fetchApi<{ grade: number }>(`/courses/my/${courseId}/modules/${moduleId}/quiz`, {
       body: JSON.stringify({
         data: answers,
       }),

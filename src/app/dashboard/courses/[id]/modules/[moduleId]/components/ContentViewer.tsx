@@ -23,6 +23,9 @@ interface ContentViewerProps {
 
 export function ContentViewer({ contents, moduleId, grade, hasAttemptedTest, onStartTest }: ContentViewerProps) {
   const [activeContent, setActiveContent] = useState(contents[0]?.type || 'video');
+  const [showTestDialog, setShowTestDialog] = useState(false);
+
+  console.log(contents, "CONTENT");
 
   const renderContent = (content: Content) => {
     switch (content.type) {
@@ -54,6 +57,11 @@ export function ContentViewer({ contents, moduleId, grade, hasAttemptedTest, onS
     }
   };
 
+  const handleStartTest = () => {
+    setShowTestDialog(false);
+    onStartTest();
+  };
+
   return (
     <div className="space-y-4">
       <Tabs value={activeContent} onValueChange={(value) => setActiveContent(value as "video" | "audio" | "pdf")}>
@@ -63,7 +71,7 @@ export function ContentViewer({ contents, moduleId, grade, hasAttemptedTest, onS
               {content.type === 'video' && <Video className="mr-2 h-4 w-4" />}
               {content.type === 'audio' && <Headphones className="mr-2 h-4 w-4" />}
               {content.type === 'pdf' && <FileText className="mr-2 h-4 w-4" />}
-              {content.title}
+              {content.type}
             </TabsTrigger>
           ))}
         </TabsList>
@@ -91,21 +99,39 @@ export function ContentViewer({ contents, moduleId, grade, hasAttemptedTest, onS
           </div>
 
           {!hasAttemptedTest ? (
-            <AlertDialog>
+            <AlertDialog open={showTestDialog} onOpenChange={setShowTestDialog}>
               <AlertDialogTrigger asChild>
-                <Button>Take Test</Button>
+                <Button onClick={() => setShowTestDialog(true)}>Take Test</Button>
               </AlertDialogTrigger>
-              <AlertDialogContent>
-                <AlertDialogHeader>
-                  <AlertDialogTitle>Are you ready to take the test?</AlertDialogTitle>
-                  <AlertDialogDescription>
-                    Please note that you can only take this test once. Make sure you are prepared before starting. If you close the test page, your answers will be automatically submitted.
+              <AlertDialogContent className="bg-white dark:bg-slate-900 p-6">
+                <AlertDialogHeader className="mb-6">
+                  <AlertDialogTitle className="text-xl font-bold text-black dark:text-white">
+                    Ready to Take the Test?
+                  </AlertDialogTitle>
+                  <AlertDialogDescription className="text-slate-800 dark:text-slate-200">
+                    <p className="mb-4">Before you begin:</p>
+                    <ul className="list-disc pl-6 space-y-3">
+                      <li>Make sure you have reviewed all the module content</li>
+                      <li>Ensure you have a stable internet connection</li>
+                      <li>Find a quiet place where you can focus</li>
+                      <li>You'll have one attempt at this test</li>
+                    </ul>
                   </AlertDialogDescription>
                 </AlertDialogHeader>
-                <AlertDialogFooter>
-                  <AlertDialogCancel>Cancel</AlertDialogCancel>
-                  <AlertDialogAction onClick={onStartTest}>Start Test</AlertDialogAction>
-                </AlertDialogFooter>
+                <div className="flex justify-end gap-3 mt-8">
+                  <AlertDialogCancel 
+                    onClick={() => setShowTestDialog(false)}
+                    className="border-2 border-gold text-gold hover:bg-gold hover:text-white"
+                  >
+                    Not Yet
+                  </AlertDialogCancel>
+                  <AlertDialogAction 
+                    onClick={handleStartTest}
+                    className="bg-green text-white hover:bg-green-dark"
+                  >
+                    Start Test
+                  </AlertDialogAction>
+                </div>
               </AlertDialogContent>
             </AlertDialog>
           ) : (
